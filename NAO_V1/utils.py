@@ -50,7 +50,7 @@ def accuracy(output, target, topk=(1,)):
 
     res = []
     for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
+        correct_k = correct[:k].reshape(-1).float().sum(0)
         res.append(correct_k.mul_(100.0/batch_size))
     return res
 
@@ -463,6 +463,18 @@ def sample_arch(arch_pool, prob=None):
     arch = arch_pool[index]
     return arch
 
+def sample_k_arch(arch_pool, k, prob = None):
+    N = len(arch_pool)
+    indices = [i for i in range(N)]
+    assert(k>0 and k<=N)
+    if prob is not None:
+        prob = np.array(prob, dtype=np.float32)
+        prob = prob / prob.sum()
+        chosen_indices = np.random.choice(indices, size=k, replace=False, p=prob)
+    else:
+        chosen_indices = np.random.choice(indices, size=k, replace=False)
+    k_arch = [arch_pool[i] for i in chosen_indices]
+    return k_arch
 
 def generate_arch(n, num_nodes, num_ops=7):
     def _get_arch():
@@ -565,6 +577,20 @@ def parse_seq_to_arch(seq, branch_length):
     reduc_arch = _parse_cell(reduc_seq)
     arch = [conv_arch, reduc_arch]
     return arch
+
+def parse_arch_string_to_seq(s, branch_length, ):
+    assert(branch_length==2)
+    n = len(s)
+    conv_arch = [int(x) for x in s[:n//2].split(' ')]
+    reduc_arch = [int(x) for x in s[n//2+1:].split(' ')]
+    return parse_arch_to_seq(conv_arch,2) + parse_arch_to_seq(reduc_arch,2)
+
+def parse_arch_string_to_arch(s, branch_length, ):
+    assert(branch_length==2)
+    n = len(s)
+    conv_arch = [int(x) for x in s[:n//2].split(' ')]
+    reduc_arch = [int(x) for x in s[n//2+1:].split(' ')]
+    return [conv_arch, reduc_arch]
 
 
 def pairwise_accuracy(la, lb):

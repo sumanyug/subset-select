@@ -65,6 +65,10 @@ class NAO(nn.Module):
         decoder_outputs = torch.stack(decoder_outputs, 0).permute(1, 0, 2)
         arch = torch.stack(ret['sequence'], 0).permute(1, 0, 2)
         return predict_value, decoder_outputs, arch
+
+    def get_arch_embedding(self, input_varialbe, target_variable=None):
+        _, _, arch_emb, _ = self.encoder(input_varialbe)
+        return arch_emb
     
     def generate_new_arch(self, input_variable, predict_lambda=1, direction='-'):
         encoder_outputs, encoder_hidden, arch_emb, predict_value, new_encoder_outputs, new_arch_emb = self.encoder.infer(

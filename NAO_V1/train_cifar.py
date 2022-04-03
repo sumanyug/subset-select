@@ -41,6 +41,7 @@ parser.add_argument('--l2_reg', type=float, default=3e-4)
 parser.add_argument('--arch', type=str, default=None)
 parser.add_argument('--use_aux_head', action='store_true', default=False)
 parser.add_argument('--seed', type=int, default=0)
+parser.add_argument('--gpu', type=int, default=0)
 args = parser.parse_args()
 
 utils.create_exp_dir(args.output_dir, scripts_to_save=glob.glob('*.py'))
@@ -133,7 +134,7 @@ def build_cifar10(model_state_dict, optimizer_state_dict, **kwargs):
     
     if torch.cuda.device_count() > 1:
         logging.info("Use %d %s", torch.cuda.device_count(), "GPUs !")
-        model = nn.DataParallel(model)
+        model = nn.DataParallel(model, device_ids=[args.gpu])
     model = model.cuda()
 
     train_criterion = nn.CrossEntropyLoss().cuda()
@@ -172,7 +173,7 @@ def build_cifar100(model_state_dict, optimizer_state_dict, **kwargs):
 
     if torch.cuda.device_count() > 1:
         logging.info("Use %d %s", torch.cuda.device_count(), "GPUs !")
-        model = nn.DataParallel(model)
+        model = nn.DataParallel(model, device_ids=[args.gpu])
     model = model.cuda()
 
     train_criterion = nn.CrossEntropyLoss().cuda()
